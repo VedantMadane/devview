@@ -7,6 +7,10 @@ Comprehensive guides for working with DevView.
 ### [Integration Guide](integration-guide.md)
 Learn how to integrate DevView into different types of projects.
 
+### [Migrating to OpenAPI](migrating-to-openapi.md)
+Upgrading from a pre-0.2.0 `mocks.json` network-mock config — field mapping and a
+conversion script.
+
 ### [Module Development](module-development.md)
 In-depth guide for creating custom DevView modules.
 
