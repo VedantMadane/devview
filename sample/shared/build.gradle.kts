@@ -43,6 +43,7 @@ kotlin {
             implementation(projects.devview)
             implementation(projects.devviewFeatureflip)
             implementation(projects.devviewAnalytics)
+            implementation(projects.devviewConsolelogger)
             implementation(projects.devviewTimecapsule)
             implementation(projects.devviewNetworkmock)
             implementation(projects.devviewUtils)
