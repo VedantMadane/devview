@@ -38,6 +38,7 @@ rootProject.name = "devview-root"
 include(
     ":devview",
     ":devview-analytics",
+    ":devview-consolelogger",
     ":devview-featureflip",
     ":devview-timecapsule",
     ":devview-networkmock",
