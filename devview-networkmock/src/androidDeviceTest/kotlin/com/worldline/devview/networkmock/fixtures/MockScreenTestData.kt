@@ -1,6 +1,5 @@
 package com.worldline.devview.networkmock.fixtures
 
-import com.worldline.devview.networkmock.core.model.MockResponse
 import com.worldline.devview.networkmock.core.model.Operation
 import com.worldline.devview.networkmock.core.model.OperationDescriptor
 import com.worldline.devview.networkmock.core.model.OperationKey
@@ -11,15 +10,6 @@ import com.worldline.devview.networkmock.viewmodel.NetworkMockUiState
 import kotlinx.collections.immutable.persistentListOf
 
 internal object MockScreenTestData {
-
-    private val getUserResponses = listOf(
-        MockResponse(statusCode = 200, exampleName = "default", displayName = "Success (200)", content = "{}"),
-        MockResponse(statusCode = 404, exampleName = "simple", displayName = "Not Found - Simple (404)", content = "{}")
-    )
-
-    private val createUserResponses = listOf(
-        MockResponse(statusCode = 201, exampleName = "default", displayName = "Created (201)", content = "{}")
-    )
 
     private fun spec(specId: String, name: String): ApiSpecUiModel = ApiSpecUiModel(
         specId = specId,
@@ -33,8 +23,7 @@ internal object MockScreenTestData {
                         name = "Get User",
                         path = "/api/users/{userId}",
                         method = "GET"
-                    ),
-                    availableResponses = getUserResponses
+                    )
                 ),
                 currentState = OperationMockState.Network
             ),
@@ -46,8 +35,7 @@ internal object MockScreenTestData {
                         name = "Create User",
                         path = "/api/users",
                         method = "POST"
-                    ),
-                    availableResponses = createUserResponses
+                    )
                 ),
                 currentState = OperationMockState.Mock(statusCode = 201, exampleName = "default")
             )

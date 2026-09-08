@@ -7,7 +7,6 @@ import androidx.compose.ui.test.assertIsNotDisplayed
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.v2.runComposeUiTest
-import com.worldline.devview.networkmock.core.model.MockResponse
 import com.worldline.devview.networkmock.core.model.Operation
 import com.worldline.devview.networkmock.core.model.OperationDescriptor
 import com.worldline.devview.networkmock.core.model.OperationKey
@@ -123,14 +122,6 @@ class EndpointCardTest {
                 name = "Get User",
                 path = "/api/users/{userId}",
                 method = "GET"
-            ),
-            availableResponses = listOf(
-                MockResponse(
-                    statusCode = 200,
-                    exampleName = "default",
-                    displayName = "Success (200)",
-                    content = "{}"
-                )
             )
         ),
         currentState = OperationMockState.Network
@@ -144,14 +135,6 @@ class EndpointCardTest {
                 name = "Get User",
                 path = "/api/users/{userId}",
                 method = "GET"
-            ),
-            availableResponses = listOf(
-                MockResponse(
-                    statusCode = 200,
-                    exampleName = "default",
-                    displayName = "Success (200)",
-                    content = "{}"
-                )
             )
         ),
         currentState = OperationMockState.Mock(statusCode = 200, exampleName = "default")

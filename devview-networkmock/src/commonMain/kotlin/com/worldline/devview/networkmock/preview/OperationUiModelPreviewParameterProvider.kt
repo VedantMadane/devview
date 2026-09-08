@@ -8,9 +8,8 @@ internal class OperationUiModelPreviewParameterProvider :
     PreviewParameterProvider<OperationUiModel> {
     override val values: Sequence<OperationUiModel>
         get() = OperationUiModel
-            .fake(
-                availableResponsesAmount = 13
-            ).asSequence()
+            .fake()
+            .asSequence()
 
     override fun getDisplayName(index: Int): String? = values
         .elementAtOrNull(index = index)

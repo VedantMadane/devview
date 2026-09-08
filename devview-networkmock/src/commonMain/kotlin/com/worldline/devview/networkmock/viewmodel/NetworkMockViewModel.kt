@@ -46,21 +46,20 @@ public class NetworkMockViewModel(
 ) : ViewModel() {
     private val privateConfiguration = MutableStateFlow<MockConfiguration?>(value = null)
     private val privateLoadingState = MutableStateFlow<LoadingState>(value = LoadingState.Loading)
-    private val privateOperationMocks = MutableStateFlow<Map<OperationKey, OperationDescriptor>>(
-        value = emptyMap()
-    )
 
     /**
      * Combined UI state for the Network Mock screen.
      *
      * Combines [MockConfiguration] (loaded once from the configured OpenAPI specs), the live
-     * [com.worldline.devview.networkmock.core.model.NetworkMockState] from DataStore, the internal
-     * loading state, and the discovered [OperationDescriptor] map into a single
-     * [NetworkMockUiState] emission. Re-emits whenever any of the four sources change.
+     * [com.worldline.devview.networkmock.core.model.NetworkMockState] from DataStore, and the
+     * internal loading state into a single [NetworkMockUiState] emission. Re-emits whenever
+     * any of the three sources change.
      *
      * Each [com.worldline.devview.networkmock.core.model.ApiSpec] in the configuration becomes
-     * one [ApiSpecUiModel] tab. Within each tab, only operations whose [OperationDescriptor]
-     * has already been discovered are included.
+     * one [ApiSpecUiModel] tab. Response variants are **not** loaded here — this state is
+     * built from spec metadata only. They're discovered lazily by
+     * [com.worldline.devview.networkmock.viewmodel.NetworkMockEndpointViewModel] when an
+     * operation's detail screen is actually opened.
      *
      * @see NetworkMockUiState
      * @see ApiSpecUiModel
@@ -68,9 +67,8 @@ public class NetworkMockViewModel(
     public val uiState: StateFlow<NetworkMockUiState> = combine(
         flow = privateConfiguration,
         flow2 = stateRepository.observeState(),
-        flow3 = privateLoadingState,
-        flow4 = privateOperationMocks
-    ) { config, runtimeState, loadingState, operationMocks ->
+        flow3 = privateLoadingState
+    ) { config, runtimeState, loadingState ->
         when (loadingState) {
             is LoadingState.Loading -> NetworkMockUiState.Loading
             is LoadingState.Error -> NetworkMockUiState.Error(message = loadingState.message)
@@ -86,19 +84,20 @@ public class NetworkMockViewModel(
                                     specId = spec.id,
                                     name = spec.name,
                                     operations = spec.operations
-                                        .mapNotNull { operation ->
+                                        .map { operation ->
                                             val key = OperationKey(
                                                 specId = spec.id,
                                                 operationId = operation.operationId
                                             )
-                                            operationMocks[key]?.let { descriptor ->
-                                                OperationUiModel(
-                                                    descriptor = descriptor,
-                                                    currentState = runtimeState
-                                                        .getOperationState(key = key)
-                                                        ?: OperationMockState.Network
-                                                )
-                                            }
+                                            OperationUiModel(
+                                                descriptor = OperationDescriptor(
+                                                    key = key,
+                                                    config = operation
+                                                ),
+                                                currentState = runtimeState
+                                                    .getOperationState(key = key)
+                                                    ?: OperationMockState.Network
+                                            )
                                         }.toPersistentList()
                                 )
                             }.toPersistentList()
@@ -117,8 +116,11 @@ public class NetworkMockViewModel(
     }
 
     /**
-     * Loads the mock configuration from the configured OpenAPI specs and discovers response
-     * variants for every operation.
+     * Loads the mock configuration from the configured OpenAPI specs.
+     *
+     * This only parses spec metadata — no response body is read or decoded here. See #98:
+     * that work is deferred to [com.worldline.devview.networkmock.viewmodel.NetworkMockEndpointViewModel],
+     * which discovers response variants for exactly one operation when its detail screen opens.
      */
     @Suppress("DocumentationOverPrivateFunction")
     private fun loadConfiguration() {
@@ -137,25 +139,6 @@ public class NetworkMockViewModel(
                     stateRepository.registerOperations(operations = allKeys)
 
                     privateConfiguration.value = config
-
-                    // Discover declared response variants for every operation
-                    val mocks = mutableMapOf<OperationKey, OperationDescriptor>()
-                    config.specs.forEach { spec ->
-                        spec.operations.forEach { operation ->
-                            val key = OperationKey(
-                                specId = spec.id,
-                                operationId = operation.operationId
-                            )
-                            val responses = configRepository.discoverResponseFiles(key = key)
-                            mocks[key] = OperationDescriptor(
-                                key = key,
-                                config = operation,
-                                availableResponses = responses
-                            )
-                        }
-                    }
-
-                    privateOperationMocks.value = mocks
                     privateLoadingState.value = LoadingState.Loaded
                 }.onFailure { error ->
                     privateLoadingState.value = LoadingState.Error(

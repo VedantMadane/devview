@@ -131,28 +131,25 @@ public data class MockMatch(
 }
 
 /**
- * The static descriptor for an available operation and its discovered mock responses.
+ * The static descriptor for an available operation.
  *
- * This combines an [Operation] with the [MockResponse] variants declared for it, giving the
- * UI layer a complete, immutable view of an operation's mocking capabilities. Runtime
- * selection state is intentionally excluded — see
+ * Pairs an [Operation] with its [OperationKey], giving the UI layer an immutable view of an
+ * operation's static configuration. This does **not** carry the operation's response
+ * variants — discovering those requires reading and decoding response body files, which is
+ * only done lazily, on demand, when the operation's detail screen is actually opened (see
+ * [com.worldline.devview.networkmock.core.repository.MockConfigRepository.discoverResponseFiles]).
+ * Runtime selection state is intentionally excluded — see
  * [com.worldline.devview.networkmock.core.model.OperationMockState].
  *
  * @property key The [OperationKey] uniquely identifying this operation within its spec
  * @property config The matched [Operation]
- * @property availableResponses The response variants declared for this operation, one per
- *   `(statusCode, exampleName)` pair found in the spec's `responses.<code>.content.*.examples`
  * @see MockResponse
  * @see OperationKey
  * @see Operation
  */
 @Immutable
 @Serializable
-public data class OperationDescriptor(
-    val key: OperationKey,
-    val config: Operation,
-    val availableResponses: List<MockResponse>
-) {
+public data class OperationDescriptor(val key: OperationKey, val config: Operation) {
     /** The [ApiSpec.id] this operation belongs to. Convenience accessor for [OperationKey.specId]. */
     public val specId: String get() = key.specId
 
