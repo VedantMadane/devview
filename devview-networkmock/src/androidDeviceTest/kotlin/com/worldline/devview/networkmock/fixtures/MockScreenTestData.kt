@@ -11,7 +11,12 @@ import kotlinx.collections.immutable.persistentListOf
 
 internal object MockScreenTestData {
 
-    private fun spec(specId: String, name: String): ApiSpecUiModel = ApiSpecUiModel(
+    /**
+     * @param versioned Whether this spec's `getUser`/`createUser` operations carry a `/v{n}/`
+     * path segment. `example` is versioned, `catalog` is not — covering both the
+     * chip/filter-row-present and filter-row-absent cases.
+     */
+    private fun spec(specId: String, name: String, versioned: Boolean): ApiSpecUiModel = ApiSpecUiModel(
         specId = specId,
         name = name,
         operations = persistentListOf(
@@ -21,8 +26,9 @@ internal object MockScreenTestData {
                     config = Operation(
                         operationId = "getUser",
                         name = "Get User",
-                        path = "/api/users/{userId}",
-                        method = "GET"
+                        path = if (versioned) "/api/v1/users/{userId}" else "/api/users/{userId}",
+                        method = "GET",
+                        version = if (versioned) "v1" else null
                     )
                 ),
                 currentState = OperationMockState.Network
@@ -33,11 +39,24 @@ internal object MockScreenTestData {
                     config = Operation(
                         operationId = "createUser",
                         name = "Create User",
-                        path = "/api/users",
-                        method = "POST"
+                        path = if (versioned) "/api/v2/users" else "/api/users",
+                        method = "POST",
+                        version = if (versioned) "v2" else null
                     )
                 ),
                 currentState = OperationMockState.Mock(statusCode = 201, exampleName = "default")
+            ),
+            OperationUiModel(
+                descriptor = OperationDescriptor(
+                    key = OperationKey(specId = specId, operationId = "health"),
+                    config = Operation(
+                        operationId = "health",
+                        name = "Health",
+                        path = "/health",
+                        method = "GET"
+                    )
+                ),
+                currentState = OperationMockState.Network
             )
         )
     )
@@ -46,8 +65,8 @@ internal object MockScreenTestData {
         NetworkMockUiState.Content(
             globalMockingEnabled = globalMockingEnabled,
             specs = persistentListOf(
-                spec(specId = "example", name = "Example"),
-                spec(specId = "catalog", name = "Catalog")
+                spec(specId = "example", name = "Example", versioned = true),
+                spec(specId = "catalog", name = "Catalog", versioned = false)
             )
         )
 }

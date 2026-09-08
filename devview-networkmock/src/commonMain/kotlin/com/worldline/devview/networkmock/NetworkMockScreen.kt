@@ -1,17 +1,28 @@
 package com.worldline.devview.networkmock
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material.icons.rounded.Search
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.PrimaryScrollableTabRow
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -21,6 +32,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -37,6 +49,7 @@ import com.worldline.devview.networkmock.components.ErrorState
 import com.worldline.devview.networkmock.components.GlobalMockToggle
 import com.worldline.devview.networkmock.components.LoadingState
 import com.worldline.devview.networkmock.core.model.OperationKey
+import com.worldline.devview.networkmock.model.OperationUiModel
 import com.worldline.devview.networkmock.preview.NetworkMockUiStatePreviewParameterProvider
 import com.worldline.devview.networkmock.viewmodel.NetworkMockUiState
 import com.worldline.devview.networkmock.viewmodel.NetworkMockViewModel
@@ -121,6 +134,7 @@ private fun ContentState(
     bottomPadding: Dp = 0.dp
 ) {
     var selectedTabIndex by remember { mutableIntStateOf(value = 0) }
+    var searchQuery by remember { mutableStateOf(value = "") }
 
     val pagerState = rememberPagerState(pageCount = { uiState.specs.size })
 
@@ -137,15 +151,46 @@ private fun ContentState(
             .fillMaxSize()
     ) {
         Surface {
-            GlobalMockToggle(
-                modifier = Modifier
-                    .padding(
-                        horizontal = 16.dp,
-                        vertical = 8.dp
-                    ),
-                enabled = uiState.globalMockingEnabled,
-                onToggle = onGlobalToggle
-            )
+            Column {
+                GlobalMockToggle(
+                    modifier = Modifier
+                        .padding(
+                            horizontal = 16.dp,
+                            vertical = 8.dp
+                        ),
+                    enabled = uiState.globalMockingEnabled,
+                    onToggle = onGlobalToggle
+                )
+                OutlinedTextField(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 8.dp)
+                        .testTag(tag = "networkmock_search_field"),
+                    value = searchQuery,
+                    onValueChange = { searchQuery = it },
+                    placeholder = { Text(text = "Search operations...") },
+                    leadingIcon = {
+                        Icon(imageVector = Icons.Rounded.Search, contentDescription = null)
+                    },
+                    trailingIcon = {
+                        AnimatedVisibility(visible = searchQuery.isNotEmpty()) {
+                            IconButton(
+                                modifier = Modifier.testTag(
+                                    tag = "networkmock_clear_search_button"
+                                ),
+                                onClick = { searchQuery = "" }
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Rounded.Close,
+                                    contentDescription = "Clear search"
+                                )
+                            }
+                        }
+                    },
+                    singleLine = true,
+                    shape = MaterialTheme.shapes.medium
+                )
+            }
         }
 
         PrimaryScrollableTabRow(
@@ -170,37 +215,114 @@ private fun ContentState(
             verticalAlignment = Alignment.Top
         ) { pageIndex ->
             val spec = uiState.specs.getOrNull(index = pageIndex) ?: return@HorizontalPager
-            LazyColumn(
-                modifier = Modifier
-                    .weight(weight = 1f),
-                verticalArrangement = Arrangement.spacedBy(space = 0.dp)
-            ) {
-                itemsIndexed(
-                    items = spec.operations,
-                    key = { _, operation -> operation.descriptor.key.compositeKey }
-                ) { index, operation ->
-                    EndpointCard(
-                        modifier = Modifier.testTag(
-                            tag = "endpoint_card_${operation.descriptor.specId}" +
-                                "_${operation.descriptor.operationId}"
-                        ),
-                        endpoint = operation,
-                        openEndpointDetails = {
-                            openEndpointDetails(operation.descriptor.key)
-                        },
-                        showFileName = true
-                    )
-                    if (index != spec.operations.lastIndex) {
-                        HorizontalDivider()
-                    }
-                }
 
-                item {
-                    Spacer(modifier = Modifier.padding(bottom = bottomPadding))
+            var selectedVersion by remember(
+                key1 = spec.specId
+            ) { mutableStateOf<String?>(value = null) }
+            val versions = remember(key1 = spec.operations) {
+                spec.operations.mapNotNull { it.descriptor.config.version }.distinct()
+            }
+            val filteredOperations = remember(
+                key1 = spec.operations,
+                key2 = searchQuery,
+                key3 = selectedVersion
+            ) {
+                spec.operations.filter {
+                    it.matches(
+                        query = searchQuery,
+                        version = selectedVersion
+                    )
+                }
+            }
+
+            Column(modifier = Modifier.weight(weight = 1f)) {
+                if (versions.isNotEmpty()) {
+                    LazyRow(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .testTag(tag = "version_filter_row_${spec.specId}"),
+                        horizontalArrangement = Arrangement.spacedBy(space = 8.dp),
+                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
+                    ) {
+                        item {
+                            FilterChip(
+                                modifier = Modifier.testTag(
+                                    tag = "version_filter_all_${spec.specId}"
+                                ),
+                                selected = selectedVersion == null,
+                                onClick = { selectedVersion = null },
+                                label = { Text(text = "All") }
+                            )
+                        }
+                        items(items = versions) { version ->
+                            FilterChip(
+                                modifier = Modifier.testTag(
+                                    tag = "version_filter_${spec.specId}_$version"
+                                ),
+                                selected = selectedVersion == version,
+                                onClick = { selectedVersion = version },
+                                label = { Text(text = version) }
+                            )
+                        }
+                    }
+                    HorizontalDivider()
+                }
+                LazyColumn(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(space = 0.dp)
+                ) {
+                    if (filteredOperations.isEmpty()) {
+                        item(key = "empty_filter_state") {
+                            Text(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(all = 16.dp)
+                                    .testTag(tag = "networkmock_empty_filter_message"),
+                                text = "No operations match your filter",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                    itemsIndexed(
+                        items = filteredOperations,
+                        key = { _, operation -> operation.descriptor.key.compositeKey }
+                    ) { index, operation ->
+                        EndpointCard(
+                            modifier = Modifier.testTag(
+                                tag = "endpoint_card_${operation.descriptor.specId}" +
+                                    "_${operation.descriptor.operationId}"
+                            ),
+                            endpoint = operation,
+                            openEndpointDetails = {
+                                openEndpointDetails(operation.descriptor.key)
+                            },
+                            showFileName = true
+                        )
+                        if (index != filteredOperations.lastIndex) {
+                            HorizontalDivider()
+                        }
+                    }
+
+                    item {
+                        Spacer(modifier = Modifier.padding(bottom = bottomPadding))
+                    }
                 }
             }
         }
     }
+}
+
+/** Whether this operation's name, path, or operationId contains [query], and matches [version]. */
+@Suppress("DocumentationOverPrivateFunction")
+private fun OperationUiModel.matches(query: String, version: String?): Boolean {
+    val config = descriptor.config
+    val matchesQuery = query.isBlank() ||
+        config.name.contains(other = query, ignoreCase = true) ||
+        config.path.contains(other = query, ignoreCase = true) ||
+        config.operationId.contains(other = query, ignoreCase = true)
+    val matchesVersion = version == null || config.version == version
+    return matchesQuery && matchesVersion
 }
 
 @Preview(locale = "en")

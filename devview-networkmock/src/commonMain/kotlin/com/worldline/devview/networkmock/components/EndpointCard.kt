@@ -98,6 +98,25 @@ internal fun EndpointCard(
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     fontFamily = FontFamily.Monospace
                 )
+                endpoint.descriptor.config.version?.let { version ->
+                    Box(
+                        modifier = Modifier
+                            .background(
+                                color = MaterialTheme.colorScheme.secondaryContainer,
+                                shape = RoundedCornerShape(size = 4.dp)
+                            ).padding(horizontal = 6.dp, vertical = 2.dp)
+                    ) {
+                        Text(
+                            modifier = Modifier.testTag(
+                                tag = "endpoint_version_${endpoint.descriptor.operationId}"
+                            ),
+                            text = version,
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSecondaryContainer,
+                            fontFamily = FontFamily.Monospace
+                        )
+                    }
+                }
             }
             AnimatedVisibility(
                 visible = showFileName
