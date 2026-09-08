@@ -67,6 +67,13 @@ public data class ApiSpec(
  *   [com.worldline.devview.networkmock.core.openapi.ParameterObject].
  * @property delayMs Response delay in milliseconds for this operation specifically, from the
  *   operation-level `x-devview.delayMs` extension. Overrides [ApiSpec.delayMs] when present.
+ * @property version Display-only version tag extracted from a `/v{n}/` segment in [path]
+ *   (e.g. `"/api/v2/x"` → `"v2"`), or `null` if [path] has no such segment. This is purely a
+ *   UI label — request matching is unaffected: `/api/v1/x` and `/api/v2/x` remain two
+ *   distinct operations matched only by path, method, and query params (see
+ *   [com.worldline.devview.networkmock.core.repository.RequestMatcher]). The pattern is not
+ *   currently configurable; non-standard (header- or query-versioned) APIs simply get
+ *   `null` here.
  * @see ApiSpec
  * @see com.worldline.devview.networkmock.core.repository.RequestMatcher
  */
@@ -78,7 +85,8 @@ public data class Operation(
     val path: String,
     val method: String,
     val queryParameters: Map<String, String>? = null,
-    val delayMs: Long? = null
+    val delayMs: Long? = null,
+    val version: String? = null
 )
 
 /**

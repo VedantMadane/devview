@@ -74,7 +74,8 @@ internal object OpenApiParser {
                     path = path,
                     method = method,
                     queryParameters = queryParameters,
-                    delayMs = rawOperation.xDevview?.delayMs
+                    delayMs = rawOperation.xDevview?.delayMs,
+                    version = versionPattern.find(input = path)?.groupValues?.get(index = 1)
                 )
 
                 responseIndex[operationId] = context.resolveResponseIndex(
@@ -102,6 +103,13 @@ internal object OpenApiParser {
         .trim(chars = charArrayOf('-'))
 
     private val json = Json { ignoreUnknownKeys = true }
+
+    /**
+     * Extracts a display-only `v{n}` version tag from a `/v{n}/` path segment (see
+     * [Operation.version]). Not currently configurable — see the KDoc there.
+     */
+    @Suppress("DocumentationOverPrivateProperty")
+    private val versionPattern = Regex(pattern = "/(v\\d+)(?=/|$)")
 
     /** Decodes [bytes] as JSON or YAML, sniffing the format from [path]'s extension. */
     @Suppress("DocumentationOverPrivateFunction")
