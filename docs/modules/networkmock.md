@@ -10,7 +10,7 @@ NetworkMock enables developers to simulate API behaviour, test offline flows, an
 
 ## Features
 - Mock network requests and responses
-- UI for toggling global and per-endpoint mocks
+- UI for toggling global and per-endpoint mocks, with search and a version filter
 - Ktor plugin for HTTP interception
 - Persistent configuration/state
 - Multiplatform support (Android/iOS)

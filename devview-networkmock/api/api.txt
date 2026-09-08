@@ -83,11 +83,14 @@ package com.worldline.devview.networkmock.viewmodel {
   }
 
   @androidx.compose.runtime.Immutable public static final class NetworkMockEndpointUiState.Content implements com.worldline.devview.networkmock.viewmodel.NetworkMockEndpointUiState {
-    ctor public NetworkMockEndpointUiState.Content(com.worldline.devview.networkmock.model.OperationUiModel operationUiModel);
+    ctor public NetworkMockEndpointUiState.Content(com.worldline.devview.networkmock.model.OperationUiModel operationUiModel, kotlinx.collections.immutable.PersistentList<com.worldline.devview.networkmock.core.model.MockResponse> responses);
     method public com.worldline.devview.networkmock.model.OperationUiModel component1();
-    method public com.worldline.devview.networkmock.viewmodel.NetworkMockEndpointUiState.Content copy(optional com.worldline.devview.networkmock.model.OperationUiModel operationUiModel);
+    method public kotlinx.collections.immutable.PersistentList<com.worldline.devview.networkmock.core.model.MockResponse> component2();
+    method public com.worldline.devview.networkmock.viewmodel.NetworkMockEndpointUiState.Content copy(optional com.worldline.devview.networkmock.model.OperationUiModel operationUiModel, optional kotlinx.collections.immutable.PersistentList<com.worldline.devview.networkmock.core.model.MockResponse> responses);
     method @InaccessibleFromKotlin public com.worldline.devview.networkmock.model.OperationUiModel getOperationUiModel();
+    method @InaccessibleFromKotlin public kotlinx.collections.immutable.PersistentList<com.worldline.devview.networkmock.core.model.MockResponse> getResponses();
     property public com.worldline.devview.networkmock.model.OperationUiModel operationUiModel;
+    property public kotlinx.collections.immutable.PersistentList<com.worldline.devview.networkmock.core.model.MockResponse> responses;
   }
 
   @androidx.compose.runtime.Immutable public static final class NetworkMockEndpointUiState.Error implements com.worldline.devview.networkmock.viewmodel.NetworkMockEndpointUiState {

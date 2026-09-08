@@ -52,6 +52,17 @@ Key concepts:
 - **`x-devview.delayMs`** → simulated response delay, at the document root (spec-wide default) and/or per operation (overrides the default). See [x-devview extension](#x-devview-extension) below.
 - **`{param}` placeholders**: Path segments like `{userId}` match any value during request matching.
 
+## Version Tags
+
+`Operation.version` is a display-only tag extracted from a `/v{n}/` segment in the operation's
+path (e.g. `/api/v2/x` → `"v2"`, `/health` → `null`). It drives the version chip and filter in
+the NetworkMock UI — see [NetworkMock UI](networkmock-ui.md).
+
+This is purely a UI label: request matching is unaffected, so `/api/v1/x` and `/api/v2/x`
+remain two distinct operations matched only by path, method, and query params (see
+[Request Matching](#request-matching) below). The extraction pattern is not currently
+configurable.
+
 ## Request Matching
 
 `MockConfigRepository.findMatchingMock(host, path, method, queryParameters)` resolves a mock in three steps:
@@ -67,6 +78,8 @@ There is no stored active-server selection. The matching server is determined pu
 Response bodies live wherever `externalValue` points them — the sample app uses `composeResources/files/networkmocks/responses/{specId}/{operationId}/{operationId}-{status}[-{suffix}].json`, but this is only a convention, not a requirement.
 
 Discovery reads exactly the `(statusCode, exampleName)` pairs declared in the spec — **there is no probing** of status codes or file-name suffixes. If a variant isn't declared, it doesn't exist.
+
+`discoverResponseFiles`/`loadMockResponse` read and decode response body files — this is real I/O, on top of the one-time spec parse. `MockConfigRepository` doesn't call either eagerly; `devview-networkmock`'s main operation list is built from parsed spec metadata alone (`OperationDescriptor` carries only `key` and `config`, no responses), and a given operation's variants are only discovered when its detail screen actually opens. See [NetworkMock UI](networkmock-ui.md).
 
 ```kotlin
 MockConfigRepository(

@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- `Operation.version`: a display-only version tag extracted from a `/v{n}/` path segment
+  (e.g. `/api/v2/x` → `"v2"`), shown as a chip on each operation in the NetworkMock UI. Purely
+  a UI label — request matching is unaffected. (`devview-networkmock-core`, `devview-networkmock`)
+- NetworkMock UI: a search field (filters by name, path, or operationId) and a per-tab version
+  filter row, both client-side over already-loaded data. (`devview-networkmock`)
+
+### Changed
+- `OperationDescriptor` no longer carries `availableResponses` — the main operation list never
+  read them, so `NetworkMockViewModel` no longer eagerly discovers and decodes every response
+  body on app start. Response variants are now only loaded when an operation's detail screen
+  actually opens (`NetworkMockEndpointUiState.Content.responses`). (`devview-networkmock-core`,
+  `devview-networkmock`)
+
 ## [0.1.5] - 2026-09-08
 
 ### Added
