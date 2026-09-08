@@ -85,10 +85,9 @@ class ModelUtilsTest {
     }
 
     @Test
-    fun `fake OperationDescriptor creates requested amount and response count`() {
+    fun `fake OperationDescriptor creates requested amount`() {
         val descriptors = OperationDescriptor.fake(
             amount = 2,
-            availableResponsesAmount = 4,
             specId = "qa"
         )
 
@@ -96,16 +95,14 @@ class ModelUtilsTest {
         descriptors[0].specId shouldBe "qa"
         descriptors[0].operationId shouldBe "operation-1"
         descriptors[0].config.path shouldBe "/operation1"
-        descriptors[0].availableResponses shouldHaveSize 4
     }
 
     @Test
     fun `fake OperationUiModel and MockResponse create requested amount`() {
-        val operations = OperationUiModel.fake(amount = 5, availableResponsesAmount = 2)
+        val operations = OperationUiModel.fake(amount = 5)
         val responses = MockResponse.fake(amount = 4)
 
         operations shouldHaveSize 5
-        operations[0].descriptor.availableResponses shouldHaveSize 2
         operations[0].currentState shouldBe OperationMockState.Mock(statusCode = 100, exampleName = "default")
 
         responses shouldHaveSize 4

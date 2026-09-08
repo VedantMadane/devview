@@ -54,8 +54,10 @@ import com.worldline.devview.networkmock.core.model.OperationMockState
 import com.worldline.devview.networkmock.core.model.StatusCodeFamily
 import com.worldline.devview.networkmock.model.OperationUiModel
 import com.worldline.devview.networkmock.preview.OperationUiModelPreviewParameterProvider
+import com.worldline.devview.networkmock.utils.fake
 import com.worldline.devview.networkmock.viewmodel.NetworkMockEndpointUiState
 import com.worldline.devview.networkmock.viewmodel.NetworkMockEndpointViewModel
+import kotlinx.collections.immutable.toPersistentList
 
 /**
  * Detail screen for a single API operation, showing all available mock responses and
@@ -115,13 +117,12 @@ private fun NetworkMockEndpointScreenContent(
     bottomPadding: Dp = 0.dp
 ) {
     val endpointUiModel = content.operationUiModel
-    val descriptor = endpointUiModel.descriptor
-    val groupedResponses = descriptor.availableResponses.groupBy {
+    val groupedResponses = content.responses.groupBy {
         StatusCodeFamily.fromStatusCode(statusCode = it.statusCode)
     }
     val selectedResponse = when (val currentState = endpointUiModel.currentState) {
         is OperationMockState.Mock ->
-            descriptor.availableResponses.find {
+            content.responses.find {
                 it.statusCode == currentState.statusCode &&
                     it.exampleName == currentState.exampleName
             }
@@ -311,7 +312,8 @@ private fun NetworkMockEndpointScreenPreview(
         Surface {
             NetworkMockEndpointScreenContent(
                 content = NetworkMockEndpointUiState.Content(
-                    operationUiModel = endpointUiModel
+                    operationUiModel = endpointUiModel,
+                    responses = MockResponse.fake(amount = 13).toPersistentList()
                 ),
                 onSelectResponse = {},
                 onPreviewClick = {}

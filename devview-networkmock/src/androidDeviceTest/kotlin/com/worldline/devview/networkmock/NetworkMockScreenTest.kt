@@ -2,13 +2,16 @@ package com.worldline.devview.networkmock
 
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.test.ComposeUiTest
+import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsOff
 import androidx.compose.ui.test.assertIsOn
 import androidx.compose.ui.test.assertIsSelected
+import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.v2.runComposeUiTest
 import com.worldline.devview.networkmock.core.model.OperationKey
 import com.worldline.devview.networkmock.fixtures.MockScreenTestData
@@ -134,6 +137,64 @@ class NetworkMockScreenTest {
 
         onNodeWithTag(testTag = "endpoint_card_example_getUser").assertIsDisplayed()
         onNodeWithTag(testTag = "endpoint_card_example_createUser").assertIsDisplayed()
+    }
+
+    @Test
+    fun searchQuery_narrowsVisibleOperations() = runComposeUiTest {
+        setScreen(uiState = MockScreenTestData.contentState())
+
+        onNodeWithTag(testTag = "networkmock_search_field").performTextInput(text = "health")
+        waitForIdle()
+
+        onNodeWithTag(testTag = "endpoint_card_example_health").assertIsDisplayed()
+        onAllNodesWithTag(testTag = "endpoint_card_example_getUser").assertCountEquals(expectedSize = 0)
+    }
+
+    @Test
+    fun clearSearchButton_restoresFullList() = runComposeUiTest {
+        setScreen(uiState = MockScreenTestData.contentState())
+
+        onNodeWithTag(testTag = "networkmock_search_field").performTextInput(text = "health")
+        waitForIdle()
+        onNodeWithTag(testTag = "networkmock_clear_search_button").performClick()
+        waitForIdle()
+
+        onNodeWithTag(testTag = "endpoint_card_example_getUser").assertIsDisplayed()
+        onNodeWithTag(testTag = "endpoint_card_example_health").assertIsDisplayed()
+    }
+
+    @Test
+    fun versionFilterChip_narrowsToThatVersion() = runComposeUiTest {
+        setScreen(uiState = MockScreenTestData.contentState())
+
+        onNodeWithTag(testTag = "version_filter_example_v1").performClick()
+        waitForIdle()
+
+        onNodeWithTag(testTag = "endpoint_card_example_getUser").assertIsDisplayed()
+        onAllNodesWithTag(testTag = "endpoint_card_example_createUser").assertCountEquals(expectedSize = 0)
+    }
+
+    @Test
+    fun versionFilterAllChip_restoresFullList() = runComposeUiTest {
+        setScreen(uiState = MockScreenTestData.contentState())
+
+        onNodeWithTag(testTag = "version_filter_example_v1").performClick()
+        waitForIdle()
+        onNodeWithTag(testTag = "version_filter_all_example").performClick()
+        waitForIdle()
+
+        onNodeWithTag(testTag = "endpoint_card_example_getUser").assertIsDisplayed()
+        onNodeWithTag(testTag = "endpoint_card_example_createUser").assertIsDisplayed()
+    }
+
+    @Test
+    fun versionFilterRow_isAbsent_forSpecWithNoVersions() = runComposeUiTest {
+        setScreen(uiState = MockScreenTestData.contentState())
+
+        onNodeWithTag(testTag = "spec_tab_catalog").performClick()
+        waitForIdle()
+
+        onAllNodesWithTag(testTag = "version_filter_row_catalog").assertCountEquals(expectedSize = 0)
     }
 
     private fun ComposeUiTest.setScreen(

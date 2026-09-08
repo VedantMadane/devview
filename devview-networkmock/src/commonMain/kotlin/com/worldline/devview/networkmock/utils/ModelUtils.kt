@@ -35,7 +35,6 @@ internal fun ApiSpecUiModel.Companion.fake(amount: Int = 4): List<ApiSpecUiModel
 
 internal fun OperationDescriptor.Companion.fake(
     amount: Int = 7,
-    availableResponsesAmount: Int = 3,
     specId: String = "spec"
 ): List<OperationDescriptor> = List(size = amount) { index ->
     OperationDescriptor(
@@ -45,19 +44,16 @@ internal fun OperationDescriptor.Companion.fake(
             name = "Operation ${index + 1}",
             method = "GET",
             path = "/operation${index + 1}"
-        ),
-        availableResponses = MockResponse.fake(amount = availableResponsesAmount)
+        )
     )
 }
 
 internal fun OperationUiModel.Companion.fake(
     amount: Int = 7,
-    availableResponsesAmount: Int = 3,
     specId: String = "spec"
 ): List<OperationUiModel> = OperationDescriptor
     .fake(
         amount = amount,
-        availableResponsesAmount = availableResponsesAmount,
         specId = specId
     ).mapIndexed { index, descriptor ->
         OperationUiModel(

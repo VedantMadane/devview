@@ -10,6 +10,8 @@ import com.worldline.devview.networkmock.core.model.OperationMockState
 import com.worldline.devview.networkmock.core.repository.MockConfigRepository
 import com.worldline.devview.networkmock.core.repository.MockStateRepository
 import com.worldline.devview.networkmock.model.OperationUiModel
+import kotlinx.collections.immutable.PersistentList
+import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -41,40 +43,41 @@ public class NetworkMockEndpointViewModel(
     private val configRepository: MockConfigRepository,
     private val stateRepository: MockStateRepository
 ) : ViewModel() {
-    private val privateDescriptor = MutableStateFlow<OperationDescriptor?>(value = null)
+    private val privateLoaded = MutableStateFlow<LoadedOperation?>(value = null)
     private val privateLoadingState =
         MutableStateFlow<EndpointLoadingState>(value = EndpointLoadingState.Loading)
 
     /**
      * Combined UI state for the operation detail screen.
      *
-     * Combines the discovered [OperationDescriptor] (loaded once on init) with the live
+     * Combines the discovered [LoadedOperation] (loaded once on init) with the live
      * [OperationMockState] from DataStore into a single [NetworkMockEndpointUiState]
      * emission. Re-emits whenever either source changes — in practice, [OperationMockState]
-     * changes on every user selection while [OperationDescriptor] is stable after loading.
+     * changes on every user selection while [LoadedOperation] is stable after loading.
      *
      * @see NetworkMockEndpointUiState
      */
     public val uiState: StateFlow<NetworkMockEndpointUiState> = combine(
-        flow = privateDescriptor,
+        flow = privateLoaded,
         flow2 = stateRepository.observeState(),
         flow3 = privateLoadingState
-    ) { descriptor, runtimeState, loadingState ->
+    ) { loaded, runtimeState, loadingState ->
         when (loadingState) {
             is EndpointLoadingState.Loading -> NetworkMockEndpointUiState.Loading
             is EndpointLoadingState.Error -> NetworkMockEndpointUiState.Error(
                 message = loadingState.message
             )
             is EndpointLoadingState.Loaded -> {
-                if (descriptor == null) {
+                if (loaded == null) {
                     NetworkMockEndpointUiState.Error(message = "Operation not found")
                 } else {
                     NetworkMockEndpointUiState.Content(
                         operationUiModel = OperationUiModel(
-                            descriptor = descriptor,
+                            descriptor = loaded.descriptor,
                             currentState = runtimeState.getOperationState(key = operationKey)
                                 ?: OperationMockState.Network
-                        )
+                        ),
+                        responses = loaded.responses
                     )
                 }
             }
@@ -115,10 +118,9 @@ public class NetworkMockEndpointViewModel(
                     return@onSuccess
                 }
 
-                privateDescriptor.value = OperationDescriptor(
-                    key = operationKey,
-                    config = operation,
-                    availableResponses = responses
+                privateLoaded.value = LoadedOperation(
+                    descriptor = OperationDescriptor(key = operationKey, config = operation),
+                    responses = responses.toPersistentList()
                 )
                 privateLoadingState.value = EndpointLoadingState.Loaded
             }.onFailure { error ->
@@ -176,11 +178,15 @@ public sealed interface NetworkMockEndpointUiState {
      * Operation loaded successfully.
      *
      * @property operationUiModel The UI model combining the static [OperationDescriptor] with the live
-     * [OperationMockState] for the operation, reflecting the latest persisted selection and available
-     * mock responses.
+     * [OperationMockState] for the operation, reflecting the latest persisted selection.
+     * @property responses The response variants discovered for this operation, loaded lazily
+     * when this screen opened.
      */
     @Immutable
-    public data class Content(val operationUiModel: OperationUiModel) : NetworkMockEndpointUiState
+    public data class Content(
+        val operationUiModel: OperationUiModel,
+        val responses: PersistentList<MockResponse>
+    ) : NetworkMockEndpointUiState
 }
 
 /**
@@ -193,3 +199,13 @@ private sealed interface EndpointLoadingState {
 
     data class Error(val message: String) : EndpointLoadingState
 }
+
+/**
+ * The result of [NetworkMockEndpointViewModel.loadEndpoint] — the static [OperationDescriptor]
+ * paired with its discovered [responses], held together so [NetworkMockEndpointViewModel.uiState]
+ * only needs to combine three flows.
+ */
+private data class LoadedOperation(
+    val descriptor: OperationDescriptor,
+    val responses: PersistentList<MockResponse>
+)

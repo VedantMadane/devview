@@ -1,5 +1,6 @@
 package com.worldline.devview.networkmock.viewmodel
 
+import com.worldline.devview.networkmock.core.NetworkMockResourceLoader
 import com.worldline.devview.networkmock.core.model.ApiSpec
 import com.worldline.devview.networkmock.core.model.MockConfiguration
 import com.worldline.devview.networkmock.core.model.MockResponse
@@ -9,6 +10,7 @@ import com.worldline.devview.networkmock.core.model.OperationKey
 import com.worldline.devview.networkmock.core.model.OperationMockState
 import com.worldline.devview.networkmock.core.repository.MockConfigRepository
 import com.worldline.devview.networkmock.core.repository.MockStateRepository
+import com.worldline.devview.test.FakePreferencesDataStore
 import com.worldline.devview.test.ViewModelTest
 import com.worldline.devview.test.collectState
 import com.worldline.devview.test.collectStates
@@ -28,6 +30,8 @@ import kotlin.test.Test
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.runTest
+
+private const val LARGE_SPEC_PATH = "specs/large-api.json"
 
 class NetworkMockViewModelTest : ViewModelTest() {
 
@@ -74,6 +78,27 @@ class NetworkMockViewModelTest : ViewModelTest() {
             .operations.shouldHaveSize(2)
         content.specs.first { it.specId == "catalog-api" }
             .operations.shouldHaveSize(1)
+
+        // #98: the main list is built from spec metadata only — no response body is read
+        coVerify(exactly = 0) { configRepository.discoverResponseFiles(key = any()) }
+    }
+
+    @Test
+    fun loadingLargeSpec_readsOnlyTheSpecFile_notAnyResponseBody() = runTest {
+        val loader = RecordingResourceLoader(specJson = largeSpecJson(operationCount = 300))
+        val configRepository = MockConfigRepository(
+            specPaths = listOf(LARGE_SPEC_PATH),
+            resourceLoader = loader
+        )
+        val stateRepository = MockStateRepository(dataStore = FakePreferencesDataStore())
+
+        val viewModel = NetworkMockViewModel(configRepository, stateRepository)
+
+        collectState(viewModel.uiState)
+
+        val content = viewModel.uiState.value.shouldBeInstanceOf<NetworkMockUiState.Content>()
+        content.specs.single().operations.shouldHaveSize(300)
+        loader.loadedPaths shouldBe listOf(LARGE_SPEC_PATH)
     }
 
     @Test
@@ -210,15 +235,6 @@ class NetworkMockViewModelTest : ViewModelTest() {
             loadResult
         }
 
-        coEvery { repository.discoverResponseFiles(any<OperationKey>()) } coAnswers {
-            when (firstArg<OperationKey>().operationId) {
-                "getUser" -> listOf(MockResponse(200, "default", "Success (200)", "{}"))
-                "createUser" -> listOf(MockResponse(201, "default", "Created (201)", "{}"))
-                "getProduct" -> listOf(MockResponse(200, "default", "Success (200)", "{}"))
-                else -> emptyList()
-            }
-        }
-
         return repository
     }
 
@@ -252,6 +268,59 @@ class NetworkMockViewModelTest : ViewModelTest() {
         coEvery { repository.getState() } coAnswers { stateFlow.value }
 
         return repository
+    }
+
+    /** Records every path loaded; the single spec file lives at [LARGE_SPEC_PATH]. */
+    private class RecordingResourceLoader(private val specJson: String) : NetworkMockResourceLoader {
+        val loadedPaths = mutableListOf<String>()
+
+        override suspend fun load(path: String): ByteArray {
+            loadedPaths += path
+            return if (path == LARGE_SPEC_PATH) {
+                specJson.encodeToByteArray()
+            } else {
+                error("Unexpected resource read: $path")
+            }
+        }
+    }
+
+    /**
+     * Builds a spec with [operationCount] operations, each declaring three response
+     * examples — large enough that eagerly reading every response body would be obvious in
+     * a test run, and none of the `externalValue` files backing those examples actually
+     * exist, so [loadingLargeSpec_readsOnlyTheSpecFile_notAnyResponseBody] fails loudly if
+     * anything but the spec itself is ever read.
+     */
+    private fun largeSpecJson(operationCount: Int): String {
+        val paths = (1..operationCount).joinToString(separator = ",\n") { index ->
+            """
+            "/operation$index": {
+              "get": {
+                "operationId": "op$index",
+                "responses": {
+                  "200": {
+                    "content": { "application/json": { "examples": {
+                      "default": { "externalValue": "responses/op$index-200-default.json" },
+                      "alt": { "externalValue": "responses/op$index-200-alt.json" }
+                    } } }
+                  },
+                  "404": {
+                    "content": { "application/json": { "examples": {
+                      "default": { "externalValue": "responses/op$index-404-default.json" }
+                    } } }
+                  }
+                }
+              }
+            }
+            """.trimIndent()
+        }
+        return """
+            {
+              "info": { "title": "Large API" },
+              "servers": [ { "url": "https://api.example.com" } ],
+              "paths": { $paths }
+            }
+        """.trimIndent()
     }
 
     private fun testConfiguration(): MockConfiguration = MockConfiguration(

@@ -67,6 +67,13 @@ public data class ApiSpec(
  *   [com.worldline.devview.networkmock.core.openapi.ParameterObject].
  * @property delayMs Response delay in milliseconds for this operation specifically, from the
  *   operation-level `x-devview.delayMs` extension. Overrides [ApiSpec.delayMs] when present.
+ * @property version Display-only version tag extracted from a `/v{n}/` segment in [path]
+ *   (e.g. `"/api/v2/x"` → `"v2"`), or `null` if [path] has no such segment. This is purely a
+ *   UI label — request matching is unaffected: `/api/v1/x` and `/api/v2/x` remain two
+ *   distinct operations matched only by path, method, and query params (see
+ *   [com.worldline.devview.networkmock.core.repository.RequestMatcher]). The pattern is not
+ *   currently configurable; non-standard (header- or query-versioned) APIs simply get
+ *   `null` here.
  * @see ApiSpec
  * @see com.worldline.devview.networkmock.core.repository.RequestMatcher
  */
@@ -78,7 +85,8 @@ public data class Operation(
     val path: String,
     val method: String,
     val queryParameters: Map<String, String>? = null,
-    val delayMs: Long? = null
+    val delayMs: Long? = null,
+    val version: String? = null
 )
 
 /**
@@ -131,28 +139,25 @@ public data class MockMatch(
 }
 
 /**
- * The static descriptor for an available operation and its discovered mock responses.
+ * The static descriptor for an available operation.
  *
- * This combines an [Operation] with the [MockResponse] variants declared for it, giving the
- * UI layer a complete, immutable view of an operation's mocking capabilities. Runtime
- * selection state is intentionally excluded — see
+ * Pairs an [Operation] with its [OperationKey], giving the UI layer an immutable view of an
+ * operation's static configuration. This does **not** carry the operation's response
+ * variants — discovering those requires reading and decoding response body files, which is
+ * only done lazily, on demand, when the operation's detail screen is actually opened (see
+ * [com.worldline.devview.networkmock.core.repository.MockConfigRepository.discoverResponseFiles]).
+ * Runtime selection state is intentionally excluded — see
  * [com.worldline.devview.networkmock.core.model.OperationMockState].
  *
  * @property key The [OperationKey] uniquely identifying this operation within its spec
  * @property config The matched [Operation]
- * @property availableResponses The response variants declared for this operation, one per
- *   `(statusCode, exampleName)` pair found in the spec's `responses.<code>.content.*.examples`
  * @see MockResponse
  * @see OperationKey
  * @see Operation
  */
 @Immutable
 @Serializable
-public data class OperationDescriptor(
-    val key: OperationKey,
-    val config: Operation,
-    val availableResponses: List<MockResponse>
-) {
+public data class OperationDescriptor(val key: OperationKey, val config: Operation) {
     /** The [ApiSpec.id] this operation belongs to. Convenience accessor for [OperationKey.specId]. */
     public val specId: String get() = key.specId
 

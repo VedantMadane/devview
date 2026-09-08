@@ -97,7 +97,7 @@ There is no environment axis, so "staging returns v1, production returns v2" doe
 }
 ```
 
-Both operations appear in the same tab. The engine mocks whichever path the app actually calls — it does not rewrite or force a version (that is a deliberately separate, deferred feature).
+Both operations appear in the same tab, each labeled with a version chip (`v1`/`v2`, extracted from the `/v{n}/` path segment) that the tab's version filter can narrow on. The engine mocks whichever path the app actually calls — it does not rewrite or force a version (that is a deliberately separate, deferred feature).
 
 ## Simulating response delay
 

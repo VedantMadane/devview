@@ -77,7 +77,7 @@ class NetworkMockEndpointViewModelTest : ViewModelTest() {
 
         val content = viewModel.uiState.value.shouldBeInstanceOf<NetworkMockEndpointUiState.Content>()
         content.operationUiModel.descriptor.key shouldBe testKey
-        content.operationUiModel.descriptor.availableResponses.size shouldBe 1
+        content.responses.size shouldBe 1
         content.operationUiModel.currentState shouldBe OperationMockState.Network
     }
 

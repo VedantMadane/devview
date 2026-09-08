@@ -110,40 +110,40 @@ package com.worldline.devview.networkmock.core.model {
   }
 
   @androidx.compose.runtime.Immutable @kotlinx.serialization.Serializable public final class Operation {
-    ctor public Operation(String operationId, String name, String path, String method, optional java.util.Map<java.lang.String,java.lang.String>? queryParameters, optional Long? delayMs);
+    ctor public Operation(String operationId, String name, String path, String method, optional java.util.Map<java.lang.String,java.lang.String>? queryParameters, optional Long? delayMs, optional String? version);
     method public String component1();
     method public String component2();
     method public String component3();
     method public String component4();
     method public java.util.Map<java.lang.String,java.lang.String>? component5();
     method public Long? component6();
-    method public com.worldline.devview.networkmock.core.model.Operation copy(optional String operationId, optional String name, optional String path, optional String method, optional java.util.Map<java.lang.String,java.lang.String>? queryParameters, optional Long? delayMs);
+    method public String? component7();
+    method public com.worldline.devview.networkmock.core.model.Operation copy(optional String operationId, optional String name, optional String path, optional String method, optional java.util.Map<java.lang.String,java.lang.String>? queryParameters, optional Long? delayMs, optional String? version);
     method @InaccessibleFromKotlin public Long? getDelayMs();
     method @InaccessibleFromKotlin public String getMethod();
     method @InaccessibleFromKotlin public String getName();
     method @InaccessibleFromKotlin public String getOperationId();
     method @InaccessibleFromKotlin public String getPath();
     method @InaccessibleFromKotlin public java.util.Map<java.lang.String,java.lang.String>? getQueryParameters();
+    method @InaccessibleFromKotlin public String? getVersion();
     property public Long? delayMs;
     property public String method;
     property public String name;
     property public String operationId;
     property public String path;
     property public java.util.Map<java.lang.String,java.lang.String>? queryParameters;
+    property public String? version;
   }
 
   @androidx.compose.runtime.Immutable @kotlinx.serialization.Serializable public final class OperationDescriptor {
-    ctor public OperationDescriptor(com.worldline.devview.networkmock.core.model.OperationKey key, com.worldline.devview.networkmock.core.model.Operation config, java.util.List<com.worldline.devview.networkmock.core.model.MockResponse> availableResponses);
+    ctor public OperationDescriptor(com.worldline.devview.networkmock.core.model.OperationKey key, com.worldline.devview.networkmock.core.model.Operation config);
     method public com.worldline.devview.networkmock.core.model.OperationKey component1();
     method public com.worldline.devview.networkmock.core.model.Operation component2();
-    method public java.util.List<com.worldline.devview.networkmock.core.model.MockResponse> component3();
-    method public com.worldline.devview.networkmock.core.model.OperationDescriptor copy(optional com.worldline.devview.networkmock.core.model.OperationKey key, optional com.worldline.devview.networkmock.core.model.Operation config, optional java.util.List<com.worldline.devview.networkmock.core.model.MockResponse> availableResponses);
-    method @InaccessibleFromKotlin public java.util.List<com.worldline.devview.networkmock.core.model.MockResponse> getAvailableResponses();
+    method public com.worldline.devview.networkmock.core.model.OperationDescriptor copy(optional com.worldline.devview.networkmock.core.model.OperationKey key, optional com.worldline.devview.networkmock.core.model.Operation config);
     method @InaccessibleFromKotlin public com.worldline.devview.networkmock.core.model.Operation getConfig();
     method @InaccessibleFromKotlin public com.worldline.devview.networkmock.core.model.OperationKey getKey();
     method @InaccessibleFromKotlin public String getOperationId();
     method @InaccessibleFromKotlin public String getSpecId();
-    property public java.util.List<com.worldline.devview.networkmock.core.model.MockResponse> availableResponses;
     property public com.worldline.devview.networkmock.core.model.Operation config;
     property public com.worldline.devview.networkmock.core.model.OperationKey key;
     property public String operationId;

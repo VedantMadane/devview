@@ -341,6 +341,41 @@ class MockConfigRepositoryTest {
     }
 
     @Test
+    fun `operation version is extracted from a v-n path segment`() = runTest {
+        val cases = mapOf(
+            "/api/v1/profile/{userId}" to "v1",
+            "/v2/users" to "v2",
+            "/api/v10/x" to "v10",
+            "/health" to null,
+            "/users/{id}" to null,
+            "/version/x" to null
+        )
+        val paths = cases.keys.mapIndexed { index, path ->
+            """
+            "$path": {
+              "get": {
+                "operationId": "op$index",
+                "responses": {}
+              }
+            }
+            """.trimIndent()
+        }.joinToString(separator = ",\n")
+        val spec = """
+            {
+              "info": { "title": "Example" },
+              "servers": [ { "url": "https://api.example.com" } ],
+              "paths": { $paths }
+            }
+        """.trimIndent()
+        val repository = createRepository(resources = mapOf(SPEC_PATH to spec))
+
+        val config = repository.loadConfiguration().getOrThrow()
+
+        val versionByPath = config.specs.single().operations.associate { it.path to it.version }
+        versionByPath shouldBe cases
+    }
+
+    @Test
     fun `local dollar-ref to a components response resolves correctly`() = runTest {
         val spec = """
             {

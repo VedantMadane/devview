@@ -46,8 +46,21 @@ rememberModules {
 ### ViewModel state model
 
 Both ViewModels combine two sources via `combine(...)` stateIn `WhileSubscribed(5000ms)`:
-- A one-shot coroutine that loads config / discovers response variants from `MockConfigRepository`
+- A one-shot coroutine that loads data from `MockConfigRepository`
 - A live `Flow<NetworkMockState>` from `MockStateRepository.observeState()`
+
+`NetworkMockViewModel` (main list) only calls `loadConfiguration()` — spec metadata, no response
+bodies. `NetworkMockEndpointViewModel` (detail screen) additionally calls
+`discoverResponseFiles(operationKey)` for its one operation, since that's the only place a
+response body is actually read; its `NetworkMockEndpointUiState.Content.responses` carries the
+result alongside `operationUiModel`.
+
+### Search and version filter live in the composable, not the ViewModel
+
+`NetworkMockScreen`'s search query and per-tab selected version are plain
+`remember { mutableStateOf(...) } ` in `ContentState` — both are pure client-side filters over
+data the ViewModel already loaded, so there's no reason to round-trip them through
+`NetworkMockUiState`.
 
 ### "Reset to Network" toolbar action
 

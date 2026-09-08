@@ -31,7 +31,7 @@ Single test class:
 | `MockConfiguration` / `ApiSpec` / `Operation` | `@Serializable` model hierarchy, one `ApiSpec` per parsed OpenAPI document |
 | `OperationKey` | Value type `(specId, operationId)` with `.compositeKey` property (`"specId-operationId"`) used everywhere as DataStore key and map key |
 | `MockMatch` | Returned by `findMatchingMock()`; carries `OperationKey` + resolved `Operation` — kept unrenamed, see naming note below |
-| `OperationDescriptor` | Static snapshot of an operation + its discovered responses; used by the UI layer |
+| `OperationDescriptor` | Static `(key, config)` pair for an operation; used by the UI layer. Does not carry response variants — see below |
 | `NetworkMockState` | Persisted state: `globalMockingEnabled`, `operationStates: Map<String, OperationMockState>`, `lastModified` |
 | `OperationMockState` | Sealed interface: `Network` (pass-through) or `Mock(statusCode: Int, exampleName: String)` |
 
@@ -90,7 +90,7 @@ There is no environment axis and no manifest file. `servers[]` lists every base 
 
 `$ref` (in `parameters`, `responses`, or `examples`) resolves one level deep, locally against `#/components/...` in the same document, or externally against another file's `components` via `./other.json#/components/...`.
 
-There is no version-tagging support in 0.2.0 — `/v1/x` and `/v2/x` are simply two distinct operations with distinct `operationId`s; a display-only version tag is a separate, later feature.
+`Operation.version` is a display-only tag extracted at parse time from a `/v{n}/` path segment (a hardcoded regex, not currently configurable) — `/v1/x` and `/v2/x` are still two distinct operations with distinct `operationId`s, matched purely by path/method/query params; `version` only drives the version chip and filter in `devview-networkmock`'s UI.
 
 ### DataStore Schema (`MockStateRepository`)
 
@@ -114,6 +114,8 @@ Each operation is stored under its own key, so updating one operation never over
 **`NetworkMockInitializer.initialize()` is `@Composable`** even though it is a process-level singleton. It uses `remember` internally so that the repo objects are tied to the Composition. Subsequent calls are early-returned no-ops (`if (stateRepository != null) return`).
 
 **`MockConfigRepository` caches** the parsed `MockConfiguration` in `cachedConfig` after the first successful load. Tests verify this with a recording resource loader that asserts each spec file is read exactly once.
+
+**Response variant discovery is opt-in, not eager.** `OperationDescriptor` carries only `key` and `config` — no response list — because loading it requires real I/O (reading and decoding each `externalValue` file) on top of the one-time spec parse. Nothing in this module calls `discoverResponseFiles`/`loadMockResponse` automatically; `devview-networkmock`'s main operation list is built from parsed spec metadata alone, and only calls discovery for one operation when that operation's detail screen opens.
 
 **`MockStateRepository.observeState()`** rebuilds the full `NetworkMockState` on every DataStore emission by scanning all keys with the `network_mock_operation_` prefix. This means new operations written by another process/session are automatically picked up without requiring `registerOperations()` — but `registerOperations()` is still needed for the write-side helpers to know about untouched operations.
 

@@ -2,12 +2,13 @@ package com.worldline.devview.networkmock.components
 
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.test.ComposeUiTest
+import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsNotDisplayed
+import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.v2.runComposeUiTest
-import com.worldline.devview.networkmock.core.model.MockResponse
 import com.worldline.devview.networkmock.core.model.Operation
 import com.worldline.devview.networkmock.core.model.OperationDescriptor
 import com.worldline.devview.networkmock.core.model.OperationKey
@@ -96,6 +97,26 @@ class EndpointCardTest {
     }
 
     @Test
+    fun versionChip_isDisplayed_whenOperationHasAVersion() = runComposeUiTest {
+        setEndpointCard(endpoint = networkEndpoint(version = "v1"))
+
+        onNodeWithTag(
+            testTag = "endpoint_version_getUser",
+            useUnmergedTree = true
+        ).assertIsDisplayed()
+    }
+
+    @Test
+    fun versionChip_isNotDisplayed_whenOperationHasNoVersion() = runComposeUiTest {
+        setEndpointCard(endpoint = networkEndpoint(version = null))
+
+        onAllNodesWithTag(
+            testTag = "endpoint_version_getUser",
+            useUnmergedTree = true
+        ).assertCountEquals(expectedSize = 0)
+    }
+
+    @Test
     fun stateChipIsDisplayed_forNetworkState() = runComposeUiTest {
         setEndpointCard(endpoint = networkEndpoint())
 
@@ -115,22 +136,15 @@ class EndpointCardTest {
         ).assertIsDisplayed()
     }
 
-    private fun networkEndpoint() = OperationUiModel(
+    private fun networkEndpoint(version: String? = null) = OperationUiModel(
         descriptor = OperationDescriptor(
             key = OperationKey(specId = "test", operationId = "getUser"),
             config = Operation(
                 operationId = "getUser",
                 name = "Get User",
                 path = "/api/users/{userId}",
-                method = "GET"
-            ),
-            availableResponses = listOf(
-                MockResponse(
-                    statusCode = 200,
-                    exampleName = "default",
-                    displayName = "Success (200)",
-                    content = "{}"
-                )
+                method = "GET",
+                version = version
             )
         ),
         currentState = OperationMockState.Network
@@ -144,14 +158,6 @@ class EndpointCardTest {
                 name = "Get User",
                 path = "/api/users/{userId}",
                 method = "GET"
-            ),
-            availableResponses = listOf(
-                MockResponse(
-                    statusCode = 200,
-                    exampleName = "default",
-                    displayName = "Success (200)",
-                    content = "{}"
-                )
             )
         ),
         currentState = OperationMockState.Mock(statusCode = 200, exampleName = "default")
