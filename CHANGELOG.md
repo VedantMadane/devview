@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.5] - 2026-09-08
+
 ### Added
 - `devview-timecapsule` module: records the state history of the currently visible screen
   via `TimeCapsuleEffect`/`TimeCapsuleOwner`, and lets a developer restore any earlier
@@ -113,7 +115,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added and expanded unit test coverage for all primary `devview-*` modules.
 - Added Konsist architecture enforcement tests and Kover coverage reporting across the module set.
 
-[Unreleased]: https://github.com/worldline/DevView/compare/v0.1.4...HEAD
+[Unreleased]: https://github.com/worldline/DevView/compare/v0.1.5...HEAD
+[0.1.5]: https://github.com/worldline/DevView/compare/v0.1.4...v0.1.5
 [0.1.4]: https://github.com/worldline/DevView/compare/v0.1.3...v0.1.4
 [0.1.3]: https://github.com/worldline/DevView/compare/v0.1.2...v0.1.3
 [0.1.2]: https://github.com/worldline/DevView/compare/v0.1.1...v0.1.2
