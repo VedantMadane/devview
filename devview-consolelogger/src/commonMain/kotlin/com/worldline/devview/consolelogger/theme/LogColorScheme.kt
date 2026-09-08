@@ -55,6 +55,14 @@ public data class LogLevelColors(
  * )
  * ```
  *
+ * @property verbose Colors for [LogLevel.VERBOSE].
+ * @property debug Colors for [LogLevel.DEBUG].
+ * @property info Colors for [LogLevel.INFO].
+ * @property warning Colors for [LogLevel.WARNING].
+ * @property error Colors for [LogLevel.ERROR].
+ * @property assert Colors for [LogLevel.ASSERT].
+ * @property unknown Colors for [LogLevel.UNKNOWN].
+ *
  * @see LogLevelColors
  * @see LocalLogColorScheme
  */

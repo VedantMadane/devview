@@ -31,6 +31,7 @@ dependencies {
 
     implementation("com.worldline.devview:devview-featureflip:<version>")   // feature flags
     implementation("com.worldline.devview:devview-analytics:<version>")     // analytics inspector
+    implementation("com.worldline.devview:devview-consolelogger:<version>") // native console log viewer
     implementation("com.worldline.devview:devview-timecapsule:<version>")   // per-screen state history
     implementation("com.worldline.devview:devview-networkmock:<version>")   // network mock UI
 
@@ -150,6 +151,24 @@ fun CounterScreen(viewModel: CounterViewModel) {
 
 The recorded history resets automatically when the screen leaves composition.
 
+### 6. Console Logger
+
+Displays native console output (logcat on Android, a stdout/stderr redirect on iOS) inside
+DevView — works on an untethered device, no debugger required:
+
+```kotlin
+val modules = rememberModules {
+    module(module = Console())
+}
+
+// Optional: route Kermit-based logging into the same view.
+Logger.addLogWriter(DevViewLogWriter)
+```
+
+See the [Console Logger guide](https://worldline.github.io/devview/modules/consolelogger/)
+for the exact per-platform capture matrix and its one limitation (`NSLog`/`os_log` on iOS
+with no debugger attached).
+
 ---
 
 ## Available Modules
@@ -159,6 +178,7 @@ The recorded history resets automatically when the screen leaves composition.
 | Core | `devview` | `DevView` composable + `rememberModules` DSL. Required by all modules. |
 | FeatureFlip | `devview-featureflip` | Runtime feature flag management with Compose UI. Supports local and remote-config flags with local overrides. |
 | Analytics | `devview-analytics` | Real-time analytics event inspector with filtering by type, category, and time range. |
+| Console Logger | `devview-consolelogger` | Native console log viewer (logcat/stdout), untethered, with level filters and text search. |
 | TimeCapsule | `devview-timecapsule` | Records the state history of the currently visible screen and lets you restore any earlier state back into it. |
 | NetworkMock (UI) | `devview-networkmock` | Full mock management UI: enable/disable endpoints, switch responses, preview and diff mock payloads. |
 | NetworkMock Core | `devview-networkmock-core` | Mock engine: OpenAPI 3.x spec parsing, request matching, DataStore state. No UI dependency. |

@@ -49,6 +49,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   body on app start. Response variants are now only loaded when an operation's detail screen
   actually opens (`NetworkMockEndpointUiState.Content.responses`). (`devview-networkmock-core`,
   `devview-networkmock`)
+- `devview-consolelogger` module: displays the app's native console output (logcat on
+  Android, a stdout/stderr redirect on iOS) inside the DevView overlay, with per-level
+  filter chips, a text filter, and auto-follow. Capture works on an untethered device
+  (no debugger required) on both platforms; an optional `DevViewLogWriter` routes
+  Kermit-based logging into the same view, closing the one remaining gap
+  (`NSLog`/`os_log` on iOS with no debugger attached). Log-level colors are configurable
+  via a `LocalLogColorScheme` CompositionLocal. (`devview-consolelogger`)
 
 ## [0.1.5] - 2026-09-08
 
