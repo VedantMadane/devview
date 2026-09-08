@@ -13,21 +13,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   a UI label — request matching is unaffected. (`devview-networkmock-core`, `devview-networkmock`)
 - NetworkMock UI: a search field (filters by name, path, or operationId) and a per-tab version
   filter row, both client-side over already-loaded data. (`devview-networkmock`)
-
-### Changed
-- `OperationDescriptor` no longer carries `availableResponses` — the main operation list never
-  read them, so `NetworkMockViewModel` no longer eagerly discovers and decodes every response
-  body on app start. Response variants are now only loaded when an operation's detail screen
-  actually opens (`NetworkMockEndpointUiState.Content.responses`). (`devview-networkmock-core`,
-  `devview-networkmock`)
-
-## [0.1.5] - 2026-09-08
-
-### Added
-- `devview-timecapsule` module: records the state history of the currently visible screen
-  via `TimeCapsuleEffect`/`TimeCapsuleOwner`, and lets a developer restore any earlier
-  state back into that screen from the DevView overlay. History resets automatically when
-  the screen leaves composition.
+- A [migration guide](docs/guides/migrating-to-openapi.md) and a `scripts/mocks_json_to_openapi.py`
+  conversion script for integrators upgrading from a pre-0.2.0 `mocks.json` config.
 
 ### Changed
 - **Breaking:** `devview-networkmock-core` now parses OpenAPI 3.x documents (JSON, and YAML
@@ -35,8 +22,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   API group — the environment axis is gone entirely; a group's request-matching hosts come
   from the spec's `servers[]` list, and an app talking to two hosts for the same API is
   simply two operations with different paths in one document. `NetworkMock(configPath: String)`
-  is now `NetworkMock(specPaths: List<String>)`. (`devview-networkmock-core`, `devview-networkmock`,
-  `devview-networkmock-ktor`)
+  is now `NetworkMock(specPaths: List<String>)`. See the
+  [migration guide](docs/guides/migrating-to-openapi.md). (`devview-networkmock-core`,
+  `devview-networkmock`, `devview-networkmock-ktor`)
 - Renamed to OpenAPI vocabulary throughout the networkmock modules: `ApiGroupConfig` →
   `ApiSpec`, `EndpointConfig` → `Operation`, `EndpointKey` → `OperationKey` (drops the
   `environmentId` component), `EndpointDescriptor` → `OperationDescriptor`,
@@ -56,6 +44,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   (`network_mock_endpoint_{groupId}-{environmentId}-{endpointId}`) are wiped once on first
   launch after upgrading — the key shape and the `Mock` payload shape both changed, so a
   translation wasn't attempted. The global mocking toggle is unaffected. (`devview-networkmock-core`)
+- `OperationDescriptor` no longer carries `availableResponses` — the main operation list never
+  read them, so `NetworkMockViewModel` no longer eagerly discovers and decodes every response
+  body on app start. Response variants are now only loaded when an operation's detail screen
+  actually opens (`NetworkMockEndpointUiState.Content.responses`). (`devview-networkmock-core`,
+  `devview-networkmock`)
+
+## [0.1.5] - 2026-09-08
+
+### Added
+- `devview-timecapsule` module: records the state history of the currently visible screen
+  via `TimeCapsuleEffect`/`TimeCapsuleOwner`, and lets a developer restore any earlier
+  state back into that screen from the DevView overlay. History resets automatically when
+  the screen leaves composition.
 
 ## [0.1.4] - 2026-07-22
 

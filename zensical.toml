@@ -82,6 +82,7 @@ nav = [
   { "Guides" = [
     "guides/index.md",
     { "Integration Guide" = "guides/integration-guide.md" },
+    { "Migrating to OpenAPI" = "guides/migrating-to-openapi.md" },
     { "Module Development" = "guides/module-development.md" },
     { "Navigation" = "guides/navigation.md" },
     { "Theming" = "guides/theming.md" },
