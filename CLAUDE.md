@@ -47,7 +47,7 @@ On Windows, use `.\gradlew.bat` instead of `./gradlew`. Always append `-Pandroid
 
 **Docs (local preview):**
 ```shell
-pip install zensical==0.0.50
+pip install zensical==0.0.60
 zensical serve
 ```
 
@@ -128,7 +128,7 @@ Individual commits use **gitmoji** format: `:emoji: message` (e.g. `:fire: Remov
 
 ## Publishing
 
-Library group: `com.worldline.devview`. Version and Sonatype config are in `gradle.properties`. Publishing is handled by the `publish.yml` GitHub Actions workflow and `scripts/release.sh`.
+Library group: `com.worldline.devview`. Version and Sonatype config are in `gradle.properties`. Publishing is handled by the `publish.yml` GitHub Actions workflow and `scripts/release.py`.
 
 ## Changelog
 

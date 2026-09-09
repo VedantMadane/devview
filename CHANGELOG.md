@@ -15,6 +15,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   filter row, both client-side over already-loaded data. (`devview-networkmock`)
 - A [migration guide](docs/guides/migrating-to-openapi.md) and a `scripts/mocks_json_to_openapi.py`
   conversion script for integrators upgrading from a pre-0.2.0 `mocks.json` config.
+- `devview-consolelogger` module: displays the app's native console output (logcat on
+  Android, a stdout/stderr redirect on iOS) inside the DevView overlay, with per-level
+  filter chips, a text filter, and auto-follow. Capture works on an untethered device
+  (no debugger required) on both platforms; an optional `DevViewLogWriter` routes
+  Kermit-based logging into the same view, closing the one remaining gap
+  (`NSLog`/`os_log` on iOS with no debugger attached). Log-level colors are configurable
+  via a `LocalLogColorScheme` CompositionLocal. (`devview-consolelogger`)
 
 ### Changed
 - **Breaking:** `devview-networkmock-core` now parses OpenAPI 3.x documents (JSON, and YAML
@@ -49,13 +56,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   body on app start. Response variants are now only loaded when an operation's detail screen
   actually opens (`NetworkMockEndpointUiState.Content.responses`). (`devview-networkmock-core`,
   `devview-networkmock`)
-- `devview-consolelogger` module: displays the app's native console output (logcat on
-  Android, a stdout/stderr redirect on iOS) inside the DevView overlay, with per-level
-  filter chips, a text filter, and auto-follow. Capture works on an untethered device
-  (no debugger required) on both platforms; an optional `DevViewLogWriter` routes
-  Kermit-based logging into the same view, closing the one remaining gap
-  (`NSLog`/`os_log` on iOS with no debugger attached). Log-level colors are configurable
-  via a `LocalLogColorScheme` CompositionLocal. (`devview-consolelogger`)
 
 ## [0.1.5] - 2026-09-08
 
@@ -165,10 +165,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added and expanded unit test coverage for all primary `devview-*` modules.
 - Added Konsist architecture enforcement tests and Kover coverage reporting across the module set.
 
-[Unreleased]: https://github.com/worldline/DevView/compare/v0.1.5...HEAD
-[0.1.5]: https://github.com/worldline/DevView/compare/v0.1.4...v0.1.5
-[0.1.4]: https://github.com/worldline/DevView/compare/v0.1.3...v0.1.4
-[0.1.3]: https://github.com/worldline/DevView/compare/v0.1.2...v0.1.3
-[0.1.2]: https://github.com/worldline/DevView/compare/v0.1.1...v0.1.2
-[0.1.1]: https://github.com/worldline/DevView/compare/v0.1.0...v0.1.1
+[Unreleased]: https://github.com/worldline/DevView/compare/0.1.5...HEAD
+[0.1.5]: https://github.com/worldline/DevView/compare/0.1.4...0.1.5
+[0.1.4]: https://github.com/worldline/DevView/compare/0.1.3...0.1.4
+[0.1.3]: https://github.com/worldline/DevView/compare/0.1.2...0.1.3
+[0.1.2]: https://github.com/worldline/DevView/compare/0.1.1...0.1.2
+[0.1.1]: https://github.com/worldline/DevView/compare/v0.1.0...0.1.1
 [0.1.0]: https://github.com/worldline/DevView/releases/tag/v0.1.0

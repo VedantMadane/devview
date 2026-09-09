@@ -28,7 +28,8 @@
 
 **Added**
 
-- `devview-timecapsule` module: records the state history of the currently visible screen
+- `devview-timecapsule` module: records the state history of the currently visible screen via `TimeCapsuleEffect`/`TimeCapsuleOwner`, and lets a developer restore any earlier state back into that screen from the DevView overlay. History resets automatically when the screen leaves composition.
+
 ---
 
 ## What is DevView?

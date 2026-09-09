@@ -48,7 +48,7 @@ jobs:
           python-version: 3.x
 
       - name: Install dependencies
-        run: pip install zensical==0.0.50 git+https://github.com/squidfunk/mike.git
+        run: pip install -r pip-requirements.txt
 
       - name: Setup Java
         uses: actions/setup-java@v5
@@ -63,20 +63,42 @@ jobs:
       - name: Resolve docs deployment
         id: docs
         env:
+          INPUT_VERSION: ${{ inputs.version }}
+          INPUT_ALIASES: ${{ inputs.aliases }}
           VERSION_NAME: ${{ steps.version_name.outputs.VERSION_NAME }}
         run: |
           if [ "$GITHUB_EVENT_NAME" = "workflow_dispatch" ]; then
-            docs_version="${{ inputs.version }}"
-            docs_aliases="${{ inputs.aliases }}"
+            docs_version="$INPUT_VERSION"
+            docs_aliases="$INPUT_ALIASES"
           elif echo "$VERSION_NAME" | grep -q "SNAPSHOT"; then
             docs_version="dev"
+            docs_aliases=""
+          elif echo "$VERSION_NAME" | grep -q -- "-"; then
+            # Pre-release (e.g. 0.3.0-alpha01): deploy under its own version, never 'latest'.
+            docs_version="$VERSION_NAME"
             docs_aliases=""
           else
             docs_version="$VERSION_NAME"
             docs_aliases="latest"
           fi
-          echo "version=$docs_version" >> $GITHUB_OUTPUT
-          echo "aliases=$docs_aliases" >> $GITHUB_OUTPUT
+
+          case "$docs_version" in
+            *[!a-zA-Z0-9._-]*)
+              echo "Docs version contains invalid characters: $docs_version"
+              exit 1
+              ;;
+          esac
+          for docs_alias in $docs_aliases; do
+            case "$docs_alias" in
+              *[!a-zA-Z0-9._-]*)
+                echo "Docs alias contains invalid characters: $docs_alias"
+                exit 1
+                ;;
+            esac
+          done
+
+          echo "version=$docs_version" >> "$GITHUB_OUTPUT"
+          echo "aliases=$docs_aliases" >> "$GITHUB_OUTPUT"
           echo "Resolved: version=$docs_version aliases=$docs_aliases"
 
       - name: Configure git for mike
@@ -95,7 +117,7 @@ jobs:
         env:
           DOCS_VERSION: ${{ steps.docs.outputs.version }}
           DOCS_ALIASES: ${{ steps.docs.outputs.aliases }}
-        run: mike deploy -u --push $DOCS_VERSION $DOCS_ALIASES
+        run: mike deploy -u --push "$DOCS_VERSION" $DOCS_ALIASES
 
       - name: Set default version
         if: (startsWith(github.ref, 'refs/tags/') || github.event_name == 'workflow_dispatch') && steps.docs.outputs.aliases != ''

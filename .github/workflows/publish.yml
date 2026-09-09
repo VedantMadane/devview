@@ -138,3 +138,5 @@ jobs:
         with:
           generate_release_notes: true
           tag_name: ${{ github.ref_name }}
+          prerelease: ${{ contains(github.ref_name, '-') }}
+          make_latest: ${{ !contains(github.ref_name, '-') }}

@@ -171,6 +171,9 @@ docs/sample
 docs/changelog.md
 docs/markdown.md
 
+# Python
+__pycache__/
+
 # Graphify
 graphify-out/cost.json
 graphify-out/.graphify_python
