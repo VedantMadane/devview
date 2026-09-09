@@ -28,7 +28,7 @@ declare -A major_latest
 
 for v in "${bare_versions[@]}"; do
   major="${v%.*}"
-  if [[ -z "${major_latest[$major]}" ]]; then
+  if [[ -z "${major_latest[$major]:-}" ]]; then
     major_latest[$major]="$v"
   else
     prev="${major_latest[$major]}"
