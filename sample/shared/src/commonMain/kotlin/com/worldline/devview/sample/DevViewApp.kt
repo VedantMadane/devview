@@ -6,17 +6,25 @@ import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
+import co.touchlab.kermit.Logger
 import com.worldline.devview.DevView
 import com.worldline.devview.analytics.Analytics
 import com.worldline.devview.analytics.AnalyticsLogger
 import com.worldline.devview.analytics.LocalAnalytics
 import com.worldline.devview.analytics.model.AnalyticsLog
 import com.worldline.devview.analytics.model.AnalyticsLogType
+import com.worldline.devview.consolelogger.Console
+import com.worldline.devview.consolelogger.ConsoleLogger
+import com.worldline.devview.consolelogger.DevViewLogWriter
+import com.worldline.devview.consolelogger.LocalConsoleLogs
+import com.worldline.devview.consolelogger.theme.LocalLogColorScheme
+import com.worldline.devview.consolelogger.theme.LogColorScheme
 import com.worldline.devview.core.rememberModules
 import com.worldline.devview.featureflip.FeatureFlip
 import com.worldline.devview.featureflip.model.Feature
@@ -46,6 +54,7 @@ public fun DevViewApp() {
     val modules = rememberModules {
         module(module = FeatureFlip)
         module(module = Analytics())
+        module(module = Console())
         module(module = TimeCapsule)
         module(
             module = NetworkMock(
@@ -92,9 +101,19 @@ public fun DevViewApp() {
         )
     }
 
+    // Route Kermit-based logging (e.g. sample:network's HTTP client logging) into the
+    // Console module, closing the gap native capture can't reach on iOS (NSLog/os_log
+    // with no debugger attached). Registered once — Logger.addLogWriter is not
+    // idempotent, so this must not re-run on every recomposition.
+    val consoleLogs = remember { ConsoleLogger.logs }
+    LaunchedEffect(key1 = Unit) {
+        Logger.addLogWriter(DevViewLogWriter)
+    }
+
     CompositionLocalProvider(
         LocalFeatureHandler provides featureHandler,
-        LocalAnalytics provides analytics
+        LocalAnalytics provides analytics,
+        LocalConsoleLogs provides consoleLogs
     ) {
         val localFeatureHandler = LocalFeatureHandler.current
 
@@ -170,18 +189,27 @@ public fun DevViewApp() {
         MaterialTheme(
             colorScheme = colorScheme
         ) {
-            // DevView open/close state
-            var devViewOpen by remember { mutableStateOf(value = false) }
+            // Chosen here, alongside the MaterialTheme colorScheme above, rather than as
+            // a Console constructor param: this stays reactive to the darkMode toggle,
+            // and rememberModules() (where Console is constructed) runs before darkMode
+            // is readable.
+            CompositionLocalProvider(
+                value = LocalLogColorScheme provides
+                    if (darkMode) LogColorScheme.Dark else LogColorScheme.Light
+            ) {
+                // DevView open/close state
+                var devViewOpen by remember { mutableStateOf(value = false) }
 
-            // Main app content
-            App(openDevView = { devViewOpen = it })
+                // Main app content
+                App(openDevView = { devViewOpen = it })
 
-            // DevView overlay
-            DevView(
-                devViewIsOpen = devViewOpen,
-                closeDevView = { devViewOpen = false },
-                modules = modules
-            )
+                // DevView overlay
+                DevView(
+                    devViewIsOpen = devViewOpen,
+                    closeDevView = { devViewOpen = false },
+                    modules = modules
+                )
+            }
         }
     }
 }

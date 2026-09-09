@@ -45,6 +45,7 @@ compose {
 
 dependencies {
     kover(projects.devviewAnalytics)
+    kover(projects.devviewConsolelogger)
     kover(projects.devviewFeatureflip)
     kover(projects.devviewTimecapsule)
     kover(projects.devviewNetworkmock)
